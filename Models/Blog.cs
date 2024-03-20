@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace TaplistBlib.Models;
 
-[Keyless]
 
 public class Blog
 {
+    [Key]
     public int Id { get; set; }
     public float Degree { get; set; }
     public string Nom { get; set; }

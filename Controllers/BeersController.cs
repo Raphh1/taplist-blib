@@ -47,5 +47,54 @@ namespace taplistBLIBofficial.Controllers
 
             return CreatedAtAction(nameof(GetBlog), new { id = blog.Id }, blog);
         }
+        
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutBlog(int id, Blog blog)
+        {
+            if (id != blog.Id)
+            {
+                return BadRequest();
+            }
+
+            _bloggingContext.Entry(blog).State = EntityState.Modified;
+
+            try
+            {
+                await _bloggingContext.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BlogExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBlog(int id)
+        {
+            var blog = await _bloggingContext.Blogs.FindAsync(id);
+            if (blog == null)
+            {
+                return NotFound();
+            }
+
+            _bloggingContext.Blogs.Remove(blog);
+            await _bloggingContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool BlogExists(int id)
+        {
+            return _bloggingContext.Blogs.Any(e => e.Id == id);
+        }
     }
 }
