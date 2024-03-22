@@ -18,45 +18,45 @@ namespace taplistBLIBofficial.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Blog>>> GetBlogs()
+        public async Task<ActionResult<IEnumerable<Beer>>> GetBlogs()
         {
-            var blogs = await _bloggingContext.Blogs.ToListAsync();
-            if (blogs == null)
+            var beers = await _bloggingContext.Beers.ToListAsync();
+            if (beers == null)
             {
                 return NotFound();
             }
-            return blogs;
+            return beers;
         }
     
         [HttpGet("{id}")]
-        public async Task<ActionResult<Blog>> GetBlog(int id)
+        public async Task<ActionResult<Beer>> GetBlog(int id)
         {
-            var blog = await _bloggingContext.Blogs.FindAsync(id);
-            if (blog == null)
+            var beer = await _bloggingContext.Beers.FindAsync(id);
+            if (beer == null)
             {
                 return NotFound();
             }
-            return blog;
+            return beer;
         }
 
         [HttpPost]
-        public async Task<ActionResult<Blog>> PostBlog(Blog blog)
+        public async Task<ActionResult<Beer>> PostBlog(Beer beer)
         {
-            _bloggingContext.Blogs.Add(blog);
+            _bloggingContext.Beers.Add(beer);
             await _bloggingContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetBlog), new { id = blog.Id }, blog);
+            return CreatedAtAction(nameof(GetBlog), new { id = beer.Id }, beer);
         }
         
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBlog(int id, Blog blog)
+        public async Task<IActionResult> PutBlog(int id, Beer beer)
         {
-            if (id != blog.Id)
+            if (id != beer.Id)
             {
                 return BadRequest();
             }
 
-            _bloggingContext.Entry(blog).State = EntityState.Modified;
+            _bloggingContext.Entry(beer).State = EntityState.Modified;
 
             try
             {
@@ -80,13 +80,13 @@ namespace taplistBLIBofficial.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBlog(int id)
         {
-            var blog = await _bloggingContext.Blogs.FindAsync(id);
-            if (blog == null)
+            var beer = await _bloggingContext.Beers.FindAsync(id);
+            if (beer == null)
             {
                 return NotFound();
             }
 
-            _bloggingContext.Blogs.Remove(blog);
+            _bloggingContext.Beers.Remove(beer);
             await _bloggingContext.SaveChangesAsync();
 
             return NoContent();
@@ -94,7 +94,7 @@ namespace taplistBLIBofficial.Controllers
 
         private bool BlogExists(int id)
         {
-            return _bloggingContext.Blogs.Any(e => e.Id == id);
+            return _bloggingContext.Beers.Any(e => e.Id == id);
         }
     }
 }

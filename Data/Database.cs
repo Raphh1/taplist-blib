@@ -4,7 +4,11 @@ using TaplistBlib.Models;
 
 public class BloggingContext : DbContext
 {
-    public DbSet<Blog> Blogs { get; set; }
+    public DbSet<Beer> Beers { get; set; }
+
+    public DbSet<Authent> Authents { get; set; }
+    
+    public DbSet<Stand> Stands { get; set; }
 
     public string DbPath { get; }
 

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace TaplistBlib.Models;
 
 
-public class Blog
+public class Beer
 {
     [Key]
     public int Id { get; set; }
@@ -13,5 +13,6 @@ public class Blog
     public string Description{ get; set; }
     public string Brasserie { get; set; }
     public string Couleur { get; set; }
+    public string Style { get; set; }
     
 }
