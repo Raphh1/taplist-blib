@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
 
@@ -19,5 +20,10 @@ namespace TaplistBlib.Models
         {
             Password = BCrypt.Net.BCrypt.HashPassword(Password);
         }
+        [ForeignKey("Stand")]
+        
+        public int StandId { get; set; }  // Clé étrangère
+
+        public Stand Stand { get; set; } 
     }
 }
