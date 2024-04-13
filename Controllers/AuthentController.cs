@@ -1,75 +1,135 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using TaplistBlib.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
-namespace taplistBLIBofficial.Controllers;
-
-[Route("api/[controller]")]
-[ApiController]
-public class AuthentController : ControllerBase
+namespace taplistBLIBofficial.Controllers
 {
-    private readonly BloggingContext _bloggingContext;
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthentController : ControllerBase
+    {
+        private readonly BloggingContext _bloggingContext;
+        private readonly IConfiguration _configuration;
 
-    public AuthentController([FromServices] BloggingContext bloggingContext)
-    {
-        _bloggingContext = bloggingContext;
-    }
-    
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Authent>>> GetBlogs()
-    {
-        var authents = await _bloggingContext.Authents.ToListAsync();
-        if ( authents == null)
+        public AuthentController([FromServices] BloggingContext bloggingContext, IConfiguration configuration)
         {
-            return NotFound();
+            _bloggingContext = bloggingContext;
+            _configuration = configuration;
         }
-        return authents;
-    }
-    
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Authent>> GetBlog(int id)
-    {
-        var authent = await _bloggingContext.Authents.FindAsync(id);
-        if(authent == null)
-        {
-            return NotFound();
-        }
-        return authent;
-    }
 
-    [HttpPost]
-    public async Task<ActionResult<Authent>> PostBlog(Authent authent)
-    {
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var existingUser =
+                await _bloggingContext.Authents.FirstOrDefaultAsync(u => u.Identifiant == model.Identifiant);
+            if (existingUser != null)
+            {
+                return BadRequest("L'utilisateur existe déjà.");
+            }
+
+            var newUser = new Authent
+            {
+                Identifiant = model.Identifiant,
+                Password = BCrypt.Net.BCrypt.HashPassword(model.Password)
+            };
+
+            _bloggingContext.Authents.Add(newUser);
+            await _bloggingContext.SaveChangesAsync();
+
+            return Ok("Utilisateur enregistré avec succès.");
+        }
         
-        string hashedPassword = BCrypt.Net.BCrypt.HashPassword(authent.Password);
-        authent.Password = hashedPassword;
         
-        _bloggingContext.Authents.Add(authent);
-        await _bloggingContext.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetBlog), new { id = authent.Id }, authent);
-    }
-    
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteBlog(int id)
-    {
-        var authent = await _bloggingContext.Authents.FindAsync(id);
-        if (authent == null)
+        [HttpDelete("delete-account")]
+        [Authorize]
+        public async Task<IActionResult> DeleteAccount()
         {
-            return NotFound();
+            var userId = User.FindFirstValue(ClaimTypes.Name);
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int id))
+            {
+                return BadRequest("ID de l'utilisateur invalide.");
+            }
+
+            var user = await _bloggingContext.Authents.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound("Utilisateur non trouvé.");
+            }
+
+            _bloggingContext.Authents.Remove(user);
+            await _bloggingContext.SaveChangesAsync();
+
+            return Ok("Compte supprimé avec succès.");
         }
 
-        _bloggingContext.Authents.Remove(authent);
-        await _bloggingContext.SaveChangesAsync();
+        [HttpGet("user/{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return BadRequest("Impossible de récupérer l'ID de l'utilisateur à partir du jeton JWT.");
+            }
 
-        return NoContent();
+            
+            if (userId != id)
+            {
+                return Forbid(); 
+            }
+
+            var user = await _bloggingContext.Authents.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound("Utilisateur non trouvé.");
+            }
+
+            return Ok(new
+            {
+                user.Id,
+                user.Identifiant
+            });
+        }
+        [HttpPost("authenticate")]
+        public async Task<IActionResult> Authenticate([FromBody] AuthentRequest model)
+        {
+            var authent = await _bloggingContext.Authents.FirstOrDefaultAsync(x => x.Identifiant == model.Identifiant);
+            if (authent == null || !BCrypt.Net.BCrypt.Verify(model.Password, authent.Password))
+            {
+                return Unauthorized();
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, authent.Id.ToString())
+                }),
+                Expires = DateTime.UtcNow.AddHours(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return Ok(new { Token = tokenString });
+        }
     }
-
-    private bool BlogExists(int id)
-    {
-        return _bloggingContext.Authents.Any(e => e.Id == id);
-    }
-
 }

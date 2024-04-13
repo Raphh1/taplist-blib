@@ -5,7 +5,6 @@ using TaplistBlib.Models;
 public class BloggingContext : DbContext
 {
     public DbSet<Beer> Beers { get; set; }
-
     public DbSet<Authent> Authents { get; set; }
     
     public DbSet<Stand> Stands { get; set; }
@@ -28,13 +27,13 @@ public class BloggingContext : DbContext
                 new MySqlServerVersion(new Version(8, 0, 23))); 
         }
     }
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Authent>()
-            .HasOne(a => a.Stand)
-            .WithOne(s => s.Authent)
-            .HasForeignKey<Stand>(s => s.Id);
-    }
+    //protected override void OnModelCreating(ModelBuilder modelBuilder)
+    //{
+        //modelBuilder.Entity<Authent>()
+            //.HasOne(a => a.Stand)
+            //.WithOne(s => s.Authent)
+            //.HasForeignKey<Stand>(s => s.Id);
+    //}
 }
 
 

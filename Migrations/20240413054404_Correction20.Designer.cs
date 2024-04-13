@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace taplistBLIBofficial.Migrations
 {
     [DbContext(typeof(BloggingContext))]
-    partial class BloggingContextModelSnapshot : ModelSnapshot
+    [Migration("20240413054404_Correction20")]
+    partial class Correction20
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,6 +38,9 @@ namespace taplistBLIBofficial.Migrations
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<int>("StandId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -80,12 +86,6 @@ namespace taplistBLIBofficial.Migrations
             modelBuilder.Entity("TaplistBlib.Models.Stand", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AuthentId")
                         .HasColumnType("int");
 
                     b.Property<string>("BrasserieStand")
@@ -94,20 +94,24 @@ namespace taplistBLIBofficial.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthentId");
-
                     b.ToTable("Stands");
                 });
 
             modelBuilder.Entity("TaplistBlib.Models.Stand", b =>
                 {
                     b.HasOne("TaplistBlib.Models.Authent", "Authent")
-                        .WithMany()
-                        .HasForeignKey("AuthentId")
+                        .WithOne("Stand")
+                        .HasForeignKey("TaplistBlib.Models.Stand", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Authent");
+                });
+
+            modelBuilder.Entity("TaplistBlib.Models.Authent", b =>
+                {
+                    b.Navigation("Stand")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
