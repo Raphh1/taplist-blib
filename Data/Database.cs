@@ -27,12 +27,12 @@ public class BloggingContext : DbContext
                 new MySqlServerVersion(new Version(8, 0, 23))); 
         }
     }
-    //protected override void OnModelCreating(ModelBuilder modelBuilder)
-    //{
-        //modelBuilder.Entity<Authent>()
-            //.HasOne(a => a.Stand)
-            //.WithOne(s => s.Authent)
-            //.HasForeignKey<Stand>(s => s.Id);
+  //  protected override void OnModelCreating(ModelBuilder modelBuilder)
+  //  {
+     //   modelBuilder.Entity<Stand>()
+     //       .HasOne(s => s.Authent)
+      //      .WithOne(a => a.Stand)
+        //    .HasForeignKey<Stand>(s => s.AuthentId);
     //}
 }
 

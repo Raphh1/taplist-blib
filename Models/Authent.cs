@@ -14,7 +14,7 @@ namespace TaplistBlib.Models
         [Required(ErrorMessage = "Le mot de passe est requis")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
-
+        
     }
 
     public class RegisterRequest
@@ -25,11 +25,20 @@ namespace TaplistBlib.Models
         [Required(ErrorMessage = "Le mot de passe est requis")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
+        
     }
+    
+    
+    
 }
+
+
+
 
 public class AuthentRequest
 {
     public string Identifiant { get; set; }
     public string Password { get; set; }
 }
+
+

@@ -33,31 +33,33 @@ namespace taplistBLIBofficial.Controllers
                 return BadRequest(ModelState);
             }
 
-            var existingUser =
-                await _bloggingContext.Authents.FirstOrDefaultAsync(u => u.Identifiant == model.Identifiant);
-            if (existingUser != null)
-            {
-                return BadRequest("L'utilisateur existe déjà.");
-            }
+            
+            //int standId = GetStandIdFromRequest(model); 
 
             var newUser = new Authent
             {
-                Identifiant = model.Identifiant,
-                Password = BCrypt.Net.BCrypt.HashPassword(model.Password)
+               Identifiant = model.Identifiant,
+            Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
+            //    StandId = standId 
             };
 
-            _bloggingContext.Authents.Add(newUser);
+           _bloggingContext.Authents.Add(newUser);
             await _bloggingContext.SaveChangesAsync();
 
             return Ok("Utilisateur enregistré avec succès.");
         }
+        
+       // private int GetStandIdFromRequest(RegisterRequest model)
+       // {
+        //    return model.StandId;
+        //}
         
         
         [HttpDelete("delete-account")]
         [Authorize]
         public async Task<IActionResult> DeleteAccount()
         {
-            var userId = User.FindFirstValue(ClaimTypes.Name);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int id))
             {
                 return BadRequest("ID de l'utilisateur invalide.");
@@ -120,7 +122,7 @@ namespace taplistBLIBofficial.Controllers
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, authent.Id.ToString())
+                    new Claim(ClaimTypes.NameIdentifier, authent.Id.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
@@ -132,4 +134,5 @@ namespace taplistBLIBofficial.Controllers
             return Ok(new { Token = tokenString });
         }
     }
+    
 }
